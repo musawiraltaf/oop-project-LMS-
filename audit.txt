@@ -1,0 +1,22 @@
+
+[2026-03-12 22:44:31] junior1 LOGIN MFA OK
+[2026-03-12 22:44:31] junior1 START Session begins
+[2026-03-12 22:46:41] executive1 LOGIN MFA OK
+[2026-03-12 22:46:41] executive1 SWITCH User switched
+[2026-03-12 22:47:07] executive1 CREATE_TASK 1
+[2026-03-12 22:47:33] junior1 LOGIN MFA OK
+[2026-03-12 22:47:33] junior1 SWITCH User switched
+[2026-03-12 22:48:27] junior1 COMPLETE_TASK 1
+[2026-03-12 22:51:15] executive1 LOGIN MFA OK
+[2026-03-12 22:51:15] executive1 START Session begins
+[2026-03-12 22:51:43] executive1 CREATE_TASK 1
+[2026-03-12 22:54:13] executive1 CREATE_TASK 2
+[2026-03-12 22:55:12] junior1 LOGIN MFA OK
+[2026-03-12 22:55:12] junior1 SWITCH User switched
+[2026-03-12 22:55:52] junior1 COMPLETE_TASK 1
+[2026-03-12 22:56:05] junior1 COMPLETE_TASK 2
+[2026-03-12 22:56:11] junior1 EXIT Session ends
+[2026-03-16 00:23:27] executive1 LOGIN MFA OK
+[2026-03-16 00:23:27] executive1 START Session begins
+[2026-03-16 00:23:47] executive1 CREATE_TASK 1
+[2026-03-16 00:24:01] executive1 GLOBAL_NOTIFY MAKKI

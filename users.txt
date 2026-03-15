@@ -1,0 +1,5 @@
+junior1:1935221d2500614000336d:s@LtJr1!:Junior
+employee1:162d3c182a1435577112333f55:s@LtEmP2!:Employee
+manager1:1e2122152a0220634000336d:s@LtMgR3!:Manager
+director1:17293e1127062c467112333f55:s@LtDrC4!:Director
+executive1:16382917300c3f434423213f0764:s@LtExV5!:Executive

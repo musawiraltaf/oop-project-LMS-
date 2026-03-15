@@ -1,0 +1,331 @@
+================================================================================
+  OSIM PROJECT — IMPROVEMENT LIST
+  Estimated Current Score: ~158-172 / 250 (~63-69%)
+  Target Score After Improvements: 220+ / 250 (88%+)
+================================================================================
+
+LEGEND:
+  [CRITICAL]  — Major mark losses, fix FIRST
+  [HIGH]      — Significant marks at stake
+  [MEDIUM]    — Moderate impact on score
+  [LOW]       — Polish / nice-to-have
+
+================================================================================
+1. [CRITICAL] FIX INHERITANCE HIERARCHY — Potential +5 marks
+================================================================================
+   PROBLEM: All role classes (Junior, Employee, Manager, Director, Executive) 
+   directly inherit from User. The spec REQUIRES a CHAIN:
+   Junior → Employee → Manager → Director → Executive (3+ levels).
+
+   CURRENT:  User → Junior, User → Employee, User → Manager, etc. (FLAT)
+   REQUIRED: User → Junior → Employee → Manager → Director → Executive (CHAIN)
+
+   FIX:
+   - Make Employee inherit from Junior
+   - Make Manager inherit from Employee
+   - Make Director inherit from Manager
+   - Make Executive inherit from Director
+   - Each subclass should add at least ONE unique method or overridden 
+     virtual function to make the hierarchy "meaningful"
+   - Example: Add virtual string getRoleTitle() to User, override in each
+
+   FILES TO CHANGE: Users.h, Users.cpp
+
+================================================================================
+2. [CRITICAL] ADD VIRTUAL FUNCTIONS TO USER HIERARCHY — Potential +4 marks
+================================================================================
+   PROBLEM: The User hierarchy has NO virtual functions (except destructor). 
+   The rubric expects runtime polymorphism in the role hierarchy itself.
+
+   FIX:
+   - Add virtual string getRoleTitle() const;
+   - Add virtual void displayDashboard() const;
+   - Add virtual bool canPerformAction(const string& action) const;
+   - Override these in each subclass with role-specific behavior
+   - Use base class User* pointers to call these polymorphically in main()
+
+   FILES TO CHANGE: Users.h, Users.cpp, Main.cpp
+
+================================================================================
+3. [CRITICAL] MOVE ALL ACCESS CHECKS INTO PolicyEngine — Potential +4 marks
+================================================================================
+   PROBLEM: Several access checks are HARDCODED in Main.cpp using patterns 
+   like: current->getClearance() < Manager("","","").getClearance()
+   The spec says: "no hardcoded checks allowed" — ALL checks must go through
+   PolicyEngine.
+
+   INSTANCES TO FIX:
+   - Main.cpp line 254 (Add User — clearance check)
+   - Main.cpp line 281 (Add User — role level check)
+   - Main.cpp line 361 (Progress Report — Director check)
+   - Main.cpp line 378 (Anomaly Report — Manager check)
+   - Main.cpp line 397 (Clear Anomalies — Manager check)
+   - Utilities.cpp line 322 (GlobalNotifier — Manager check)
+
+   FIX:
+   - Add to PolicyEngine:
+     static bool canAddUser(const User* adder, int targetRole);
+     static bool canViewAllReports(const User* viewer);
+     static bool canViewAnomalies(const User* viewer);
+     static bool canSendNotification(const User* sender, int level);
+
+   FILES TO CHANGE: Utilities.h, Utilities.cpp, Main.cpp
+
+================================================================================
+4. [HIGH] ADD MISSING OPERATOR OVERLOADS (+=, ()) — Potential +1 mark
+================================================================================
+   PROBLEM: The spec requires operator overloading for: +=, <<, ==, ()
+   Currently have: <, ==, << (friend on PerformanceReport)
+   Missing: += and ()
+
+   FIX:
+   - operator+= on TaskManager: taskManager += newTask; (adds a task)
+   - operator() on PolicyEngine: policyEngine(user, action) returns bool
+     (functor for permission check)
+   - OR operator+= on PerformanceReport to accumulate stats
+
+   FILES TO CHANGE: TaskHandler.h, TaskHandler.cpp, Utilities.h, Utilities.cpp
+
+================================================================================
+5. [HIGH] IMPLEMENT LOGIN LOCKOUT (3 attempt max) — Potential +3 marks
+================================================================================
+   PROBLEM: The spec says "Max 3 login attempts; access denied afterward" 
+   but failed logins only get logged — the user can keep trying infinitely.
+
+   FIX:
+   - Track login attempts per username (use a parallel array or struct)
+   - After 3 consecutive failures for the same username, deny further attempts
+   - Reset counter on successful login
+   - Add lockout status to audit log
+
+   FILES TO CHANGE: Utilities.h, Utilities.cpp, Main.cpp
+
+================================================================================
+6. [HIGH] FIX TASK STATUS TRANSITIONS — Potential +3 marks
+================================================================================
+   PROBLEM: Tasks go from CREATED → COMPLETED/EXPIRED directly.
+   Never transition through ASSIGNED or INPROGRESS.
+
+   FIX:
+   - When a task is created via createTask(), set status = ASSIGNED
+   - When assignee starts working (add a "Start Task" menu option), 
+     set status = INPROGRESS
+   - Add a menu option (e.g., "Start Task") between create and complete
+   - Ensure all 5 task statuses are reachable:
+     CREATED → ASSIGNED → INPROGRESS → COMPLETED | EXPIRED
+
+   FILES TO CHANGE: TaskHandler.cpp, Main.cpp
+
+================================================================================
+7. [HIGH] ADD BINARY FILE HANDLING — Potential +2 marks
+================================================================================
+   PROBLEM: The spec mentions tasks.dat (binary file) and "Serialize/
+   deserialize data to/from text AND binary files." All files are currently 
+   text-based.
+
+   FIX:
+   - Save task data to tasks.dat in binary format using write()/read()
+   - Alternatively, encrypt audit logs to a binary file (bonus feature too)
+   - Demonstrate both text (users.txt) and binary (tasks.dat) handling
+
+   FILES TO CHANGE: TaskHandler.h, TaskHandler.cpp
+
+================================================================================
+8. [HIGH] FIX AUDIT LOG FORMAT — Potential +4 marks
+================================================================================
+   PROBLEM: 
+   a) logFailure() inserts "#####################-LOGIN_FAILED-#####################"
+      decorators INTO the audit log file, corrupting the format
+   b) Spec requires using operator<< for logging, not raw ofstream
+   c) audit.txt is not truly immutable — code can overwrite it
+
+   FIX:
+   a) Fix logFailure() to write clean format: [timestamp] USERNAME LOGIN_FAILED
+   b) Overload operator<< on AuditLogger: logger << AuditEntry(user, action, detail)
+   c) After writing, set file to read-only: chmod() or similar
+
+   FILES TO CHANGE: Utilities.h, Utilities.cpp
+
+================================================================================
+9. [HIGH] ADD TimeManager AS A SEPARATE CLASS — Potential +3 marks
+================================================================================
+   PROBLEM: The spec requires a "TimeManager" class for TTL handling.
+   Currently, expiry logic is embedded inside TaskManager.
+
+   FIX:
+   - Create a TimeManager class
+   - Move expireRec() logic into TimeManager
+   - TimeManager::checkExpiry(Task*) — checks one task
+   - TimeManager::expireAll(Task* head) — recursive traversal
+   - TaskManager should USE TimeManager (composition)
+
+   FILES TO CHANGE: New file: TimeManager.h/TimeManager.cpp, TaskHandler.h, TaskHandler.cpp
+
+================================================================================
+10. [MEDIUM] IMPROVE CODE QUALITY AND DOCUMENTATION — Potential +3 marks
+================================================================================
+   PROBLEM: Almost zero comments. Cryptic variable names. Inconsistent 
+   formatting. All code cramped together. using namespace std in headers.
+
+   FIX:
+   - Add file-level header comments (purpose, author, date)
+   - Add function-level comments explaining what each function does
+   - Rename cryptic variables:
+     u → username, p → password, r → role, L → line
+     au → assigneeUsername, na → newAssignee, mt → msgType
+   - Remove "using namespace std;" from ALL .h files (use std:: prefix)
+   - Add consistent indentation (4 spaces everywhere)
+   - Split Utilities.cpp into separate files per class
+
+   FILES TO CHANGE: ALL files
+
+================================================================================
+11. [MEDIUM] FIX PrivateMessage DOUBLE-ENCRYPTION BUG — Potential +3 marks
+================================================================================
+   PROBLEM: When loading from inbox.txt, PrivateMessage constructor XORs the 
+   payload again. But the data in inbox.txt is already XOR-encrypted from the
+   serialize() call. So loaded PRIVATE messages get double-encrypted and 
+   become unreadable.
+
+   FIX:
+   - Add a second constructor PrivateMessage(User* s, User* r, 
+     const string& cipher, bool raw) that does NOT encrypt
+   - Use this constructor when deserializing from file
+   - OR store plaintext in serialize() and encrypt on printFor()
+
+   FILES TO CHANGE: MessageHandler.h, MessageHandler.cpp
+
+================================================================================
+12. [MEDIUM] ADD COMPREHENSIVE INPUT VALIDATION — Potential +3 marks
+================================================================================
+   PROBLEM: No cin.fail() checks. Typing a letter when expecting a number 
+   causes infinite loops or crashes. No bounds checking.
+
+   FIX:
+   - After every cin >> intVar, check cin.fail() and clear bad input:
+     if(cin.fail()) { cin.clear(); cin.ignore(1000,'\n'); cout<<"Invalid\n"; break; }
+   - Validate menu choices are in range
+   - Validate priority input is 0-2
+   - Validate message type is 0-2
+   - Handle empty strings for usernames
+
+   FILES TO CHANGE: Main.cpp
+
+================================================================================
+13. [MEDIUM] ADD DIGITAL SIGNATURES (BONUS) — Potential +5 marks
+================================================================================
+   PROBLEM: Bonus features are worth 5 marks. Currently only have basic 
+   cycle detection (creator check) and ASCII box title.
+
+   FIX:
+   - Implement digital signatures for task approvals:
+     signature = hash(username + timestamp)
+   - Store signature with each task
+   - Verify signature on task completion
+   - Display signature in task listing
+
+   FILES TO CHANGE: TaskHandler.h, TaskHandler.cpp, Main.cpp
+
+================================================================================
+14. [MEDIUM] ADD FULL CYCLE DETECTION IN DELEGATION — Potential bonus marks
+================================================================================
+   PROBLEM: Current cycle detection only checks if new assignee == creator.
+   Does NOT detect longer chains (A→B→C→A).
+
+   FIX:
+   - Track delegation history per task (chain of assignees)
+   - Before delegating, walk the chain to check if newAssignee appears
+   - Use recursion to traverse the delegation history
+   - Flag the cycle in anomaly report
+
+   FILES TO CHANGE: TaskHandler.h, TaskHandler.cpp, Main.cpp
+
+================================================================================
+15. [LOW] ADD ASCII DASHBOARD (BONUS) — Potential bonus marks
+================================================================================
+   PROBLEM: printBoxTitle() is minimal. A full dashboard would impress.
+
+   FIX:
+   - Add a showDashboard() function that displays:
+     * User info (role, clearance level)
+     * Active tasks summary (count by priority and status)
+     * Unread messages count
+     * Recent audit log entries
+     * Performance score
+   - Use box-drawing characters for professional look
+
+   FILES TO CHANGE: Main.cpp, Utilities.h, Utilities.cpp
+
+================================================================================
+16. [LOW] SPLIT Utilities.cpp INTO MULTIPLE FILES — Code quality
+================================================================================
+   PROBLEM: Utilities.cpp is 436 lines with 10+ unrelated classes. This 
+   hurts readability and modularity.
+
+   FIX:
+   - PasswordManager.h / PasswordManager.cpp
+   - MFAHandler.h / MFAHandler.cpp
+   - AuditLogger.h / AuditLogger.cpp
+   - PolicyEngine.h / PolicyEngine.cpp
+   - CredentialManager.h / CredentialManager.cpp
+   - AnomalyDetector.h / AnomalyDetector.cpp
+   - GlobalNotifier.h / GlobalNotifier.cpp
+   - PerformanceReport.h / PerformanceReport.cpp
+
+================================================================================
+17. [LOW] ADD ENCRYPTED BINARY LOG FILE (BONUS) — Potential bonus marks
+================================================================================
+   PROBLEM: Spec lists "Encrypted binary log file" as a bonus feature.
+
+   FIX:
+   - After every audit.txt write, also write to audit.dat in binary
+   - XOR-encrypt each log entry before writing
+   - Add option to view encrypted logs (decrypt on display)
+
+   FILES TO CHANGE: Utilities.h, Utilities.cpp
+
+================================================================================
+
+GITHUB / LINKEDIN RECOMMENDATIONS:
+================================================================================
+   1. Write a professional README.md with:
+      - Project title, description, and features
+      - Screenshots or demo GIF
+      - How to compile and run
+      - Architecture overview
+      - Technologies used
+      - Your contribution / role
+   
+   2. Add a .gitignore file:
+      *.exe
+      *.o
+      *.out
+      .DS_Store
+      otp.txt
+   
+   3. Add a LICENSE file (MIT is a good choice for student projects)
+   
+   4. Clean up data files — reset to clean demo state:
+      - Fresh users.txt with 5 demo accounts
+      - Empty tasks.txt, audit.txt, inbox.txt
+      - Remove anomalyreport.txt, progressreport.txt
+
+   5. Add a Makefile or compile script for Linux/macOS
+
+================================================================================
+  PRIORITY ORDER FOR MAXIMUM SCORE IMPROVEMENT:
+================================================================================
+   1. Fix inheritance chain (Junior→Employee→Manager→Director→Executive)
+   2. Add virtual functions to User hierarchy
+   3. Move all access checks to PolicyEngine
+   4. Fix audit log format bug
+   5. Add login lockout mechanism
+   6. Add missing operators (+=, ())
+   7. Fix PrivateMessage double-encryption
+   8. Add TimeManager class
+   9. Fix task status transitions
+   10. Add input validation
+   11. Add comments and rename variables
+   12. Add binary file handling
+   13. Add bonus features (signatures, dashboard)
+================================================================================

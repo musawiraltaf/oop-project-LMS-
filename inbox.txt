@@ -1,0 +1,16 @@
+executive1,executive1,0,1773602641,MAKKI
+executive1,director1,0,1773602641,MAKKI
+executive1,manager1,0,1773602641,MAKKI
+executive1,employee1,0,1773602641,MAKKI
+executive1,junior1,0,1773602641,MAKKI
+executive1,junior1,0,1773602627,Task 1 assigned to you
+executive1,junior1,0,1773337627,Task 1 assigned to you
+executive1,junior1,2,1746987723,[ANOMALY] See anomalyreport.txt
+executive1,employee1,2,1746987723,[ANOMALY] See anomalyreport.txt
+executive1,manager1,2,1746987723,[ANOMALY] See anomalyreport.txt
+executive1,director1,2,1746987723,[ANOMALY] See anomalyreport.txt
+executive1,executive1,2,1746987723,[ANOMALY] See anomalyreport.txt
+employee1,employee1,2,1746987911,[ANOMALY] Delegated a task to lower-clearance user
+employee1,director1,1,1746988053,ÉÂßÞÃË
+executive1,junior1,0,1773337903,Task 1 assigned to you
+executive1,junior1,0,1773338053,Task 2 assigned to you

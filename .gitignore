@@ -1,0 +1,20 @@
+# Compiled binaries
+*.exe
+*.out
+*.o
+osim
+
+# IDE files
+.vscode/
+.idea/
+*.sln
+*.vcxproj*
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Runtime generated files
+otp.txt
+anomalyreport.txt
+progressreport_tmp.txt
